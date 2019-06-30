@@ -1,10 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<form name="user_info" action="../../html/html-editor/action_post.php" method="post"> 
-  Baseline Value :<input type="text" name="value"><br>
-  <input type="image" src="" alt="Submit">
+<form id='nameForm'>
+  <div class='form-uname'>
+      <label id='nameLable' for='nameField'>Select a Baseline:</label>
+      <input id='nameField' type='text' maxlength='3'/>
+  </div>
+  <div class='form-sub'>
+      <button id='subButton' type='button'>Apply</button>
+  </div>
 </form>
+
+<div>
+  <p id='result'></p></div>
+</div>
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v4.js"></script>
 
@@ -16,11 +25,20 @@
 
 </div>
 <script>
+  function getUserName() {
+    var nameField = document.getElementById('nameField').value;
+    var result = document.getElementById('result');
+    result.textContent = 'Your baseline is: ' + nameField;
+        //alert(nameField);
+    createGraph();
+  }
+  var subButton = document.getElementById('subButton');
+  subButton.addEventListener('click', getUserName, false); 
 
   // set the dimensions and margins of the graph
   var margin = {top: 80, right: 25, bottom: 30, left: 40},
-    width = 800 - margin.left - margin.right,
-    height = 800 - margin.top - margin.bottom;
+    width = 750 - margin.left - margin.right,
+    height = 750 - margin.top - margin.bottom;
   
   // append the svg object to the body of the page
   var svg = d3.select("#my_dataviz")
@@ -32,12 +50,15 @@
           "translate(" + margin.left + "," + margin.top + ")");
   
   //Read the data
+  function createGraph(){
   d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/heatmap_data.csv", function(data) {
     console.log(data);
+    console.log(document.getElementById('nameField').value);
+    
     // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
     var myGroups = d3.map(data, function(d){return d.group;}).keys()
     var myVars = d3.map(data, function(d){return d.variable;}).keys()
-  
+    
     // Build X scales and axis:
     var x = d3.scaleBand()
       .range([ 0, width ])
@@ -61,8 +82,8 @@
   
     // Build color scale
     var myColor = d3.scaleSequential()
-      .interpolator(d3.interpolateInferno)
-      .domain([1,100])
+      .interpolator(d3.interpolateRdYlGn)
+      .domain([1, document.getElementById('nameField').value])
   
     // create a tooltip
     var tooltip = d3.select("#my_dataviz")
@@ -115,7 +136,7 @@
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave)
-  })
+  })}
   
   // Add title to graph
   svg.append("text")
