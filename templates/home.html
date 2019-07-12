@@ -14,6 +14,10 @@
 <div>
   <p id='result'></p></div>
 </div>
+<p>
+  <img border="0" alt="W3Schools" src="https://i.gyazo.com/92260d7716943dae2468cef6776fc2ab.png" width="800" height="200">
+  </a>
+</p>
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v4.js"></script>
 
@@ -25,6 +29,7 @@
 
 </div>
 <script>
+  //console.log(myData);
   function getUserName() {
     var nameField = document.getElementById('nameField').value;
     var result = document.getElementById('result');
@@ -48,18 +53,26 @@
   .append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
+
   
   //Read the data
   function createGraph(){
-  d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/heatmap_data.csv", function(data) {
+  //d3.csv("https://raw.githubusercontent.com/swayamz/datatsv/master/Untitled%20spreadsheet%20-%20Sheet1.csv", function(data) {
+    d3.json("{% url "getJSONdata" %}", function(data) {
+    console.log(data);
+    data = JSON.parse(data);
     console.log(data);
     console.log(document.getElementById('nameField').value);
+    svg.selectAll("*").remove();
     
     // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
-    var myGroups = d3.map(data, function(d){return d.group;}).keys()
-    var myVars = d3.map(data, function(d){return d.variable;}).keys()
-    
+    var myGroups = d3.map(data, function(d){return d.fields.group;}).keys()
+    var myVars = d3.map(data, function(d){return d.fields.variable;}).keys()
+    //var myGroups = d3.map("{{ myData_value }}", function(d){return d.group;}).keys()
+    //var myVars = d3.map("{{ myData_value }}", function(d){return d.variable;}).keys() 
+
     // Build X scales and axis:
+
     var x = d3.scaleBand()
       .range([ 0, width ])
       .domain(myGroups)
@@ -82,9 +95,8 @@
   
     // Build color scale
     var myColor = d3.scaleSequential()
-      .interpolator(d3.interpolateRdYlGn)
-      .domain([1, document.getElementById('nameField').value])
-  
+     .interpolator(d3.interpolateSpectral)
+     .domain([1, 100])
     // create a tooltip
     var tooltip = d3.select("#my_dataviz")
       .append("div")
@@ -106,7 +118,7 @@
     }
     var mousemove = function(d) {
       tooltip
-        .html("The exact moisture level of<br>this area is: " + d.value)
+        .html("The exact moisture level of<br>this area is: " + d.fields.value)
         .style("left", (d3.mouse(this)[0]+70) + "px")
         .style("top", (d3.mouse(this)[1]) + "px")
     }
@@ -119,42 +131,78 @@
     }
   
     // add the squares
+    var myBase = Number(document.getElementById('nameField').value);
+    console.log('My Base is: '+ myBase);
+    var myBottom = myBase-5;
+    var myTop = myBase+5;
+    console.log('My Bottom is: '+ myBottom);
+    console.log('My Top is: '+ myTop);
+
+    var myScale = [0, 25, 50, 80, 95, 100]
     svg.selectAll()
       .data(data, function(d) {return d.group+':'+d.variable;})
       .enter()
       .append("rect")
-        .attr("x", function(d) { return x(d.group) })
-        .attr("y", function(d) { return y(d.variable) })
+        .attr("x", function(d) { return x(d.fields.group) })
+        .attr("y", function(d) { return y(d.fields.variable) })
         .attr("rx", 4)
         .attr("ry", 4)
         .attr("width", x.bandwidth() )
         .attr("height", y.bandwidth() )
-        .style("fill", function(d) { return myColor(d.value)} )
+        .style("fill", function(d) {
+           //return myColor(d.value)
+           if(myBottom<=d.fields.value && d.fields.value<=myTop){
+             return myColor(myScale[3]);
+             //Good, In range of Baseline, GREEN
+           }
+           if(myBase-20<=d.fields.value && d.fields.value<=myBottom){
+            return myColor(myScale[2]);
+            //Mediocre Underwatered, -10 away from Good range, YELLOW
+           }
+           if(myBottom<=d.fields.value && d.fields.value<=myBase+15){
+            return myColor(myScale[4]);
+            //Mediocre Overwatered, +10 away from Good range, BLUE
+           }
+          if(myBase-45<=d.fields.value && d.fields.value<=myBase-20){
+            return myColor(myScale[1]);
+            //Bad Underwatered, -30 away from Good range, Orange
+           }
+           if(myBase+15<=d.fields.value){
+            return myColor(myScale[5]);
+            //Mediocre Overwatered, +30 away from Good range, BLUE
+           }
+           if(d.fields.value<=myBase-45){
+            return myColor(myScale[0]);
+            //Bad Underwatered, -30 away from Good range, Orange
+           }
+        })
         .style("stroke-width", 4)
         .style("stroke", "none")
         .style("opacity", 0.8)
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave)
+
+       // Add title to graph
+  svg.append("text")
+  .attr("x", 0)
+  .attr("y", -50)
+  .attr("text-anchor", "left")
+  .style("font-size", "22px")
+  .text("Soil Moisture Status");
+
+// Add subtitle to graph
+svg.append("text")
+  .attr("x", 0)
+  .attr("y", -20)
+  .attr("text-anchor", "left")
+  .style("font-size", "14px")
+  .style("fill", "grey")
+  .style("max-width", 400)
+  .text("Status of the soil moisture level in each section of the field.");
   })}
   
-  // Add title to graph
-  svg.append("text")
-          .attr("x", 0)
-          .attr("y", -50)
-          .attr("text-anchor", "left")
-          .style("font-size", "22px")
-          .text("Soil Moisture Status");
-  
-  // Add subtitle to graph
-  svg.append("text")
-          .attr("x", 0)
-          .attr("y", -20)
-          .attr("text-anchor", "left")
-          .style("font-size", "14px")
-          .style("fill", "grey")
-          .style("max-width", 400)
-          .text("Status of the soil moisture level in each section of the field.");
+ 
   
   
   </script>
