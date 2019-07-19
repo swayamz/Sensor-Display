@@ -8,12 +8,11 @@ from django.core import serializers
 # Create your views here.
 
 def home(request):
-    myData = FarmData.objects.all()
-    myDataLIST = list(FarmData.objects.all())
-    myData_time = list(map(str, list(FarmData.objects.values_list('time', flat=True))))
-    myData_group = list(map(str, list(FarmData.objects.values_list('group', flat=True))))
-    myData_variable = list(FarmData.objects.values_list('variable', flat=True))
-    myData_value = list(FarmData.objects.values_list('value', flat=True))
+    #myData = FarmData.objects.all().filter(time='19 Jul 2019 11:19:26')
+   ##myData_time = list(map(str, list(FarmData.objects.values_list('time', flat=True).filter(time='19 Jul 2019 11:19:26'))))
+   # myData_group = list(map(str, list(FarmData.objects.values_list('x', flat=True).filter(time='19 Jul 2019 11:19:26'))))
+   # myData_variable = list(FarmData.objects.values_list('y', flat=True).filter(time='19 Jul 2019 11:19:26'))
+    #myData_value = list(FarmData.objects.values_list('value', flat=True).filter(time='19 Jul 2019 11:19:26'))
 
     #json_serializer = json.Serializer()
     #json_serialized = json_serializer.serialize(myData)
@@ -33,6 +32,7 @@ def home(request):
     return render(request, 'home.html')
 
 def getJSONdata(request):
-    myData = FarmData.objects.all()
+    getLatestTime = FarmData.objects.values_list('time', flat=True).latest('id')
+    myData = FarmData.objects.all().filter(time=getLatestTime)
     print(serializers.serialize('json', myData))
     return JsonResponse(serializers.serialize('json', myData), safe=False)

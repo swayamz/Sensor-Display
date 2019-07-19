@@ -57,8 +57,9 @@
   
   //Read the data
   function createGraph(){
-  //d3.csv("https://raw.githubusercontent.com/swayamz/datatsv/master/Untitled%20spreadsheet%20-%20Sheet1.csv", function(data) {
+    //d3.csv("https://raw.githubusercontent.com/swayamz/datatsv/master/Untitled%20spreadsheet%20-%20Sheet1.csv", function(data) {
     d3.json("{% url "getJSONdata" %}", function(data) {
+    console.log("{% url "getJSONdata" %}");
     console.log(data);
     data = JSON.parse(data);
     console.log(data);
@@ -66,8 +67,8 @@
     svg.selectAll("*").remove();
     
     // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
-    var myGroups = d3.map(data, function(d){return d.fields.group;}).keys()
-    var myVars = d3.map(data, function(d){return d.fields.variable;}).keys()
+    var myGroups = d3.map(data, function(d){return d.fields.x;}).keys()
+    var myVars = d3.map(data, function(d){return d.fields.y;}).keys()
     //var myGroups = d3.map("{{ myData_value }}", function(d){return d.group;}).keys()
     //var myVars = d3.map("{{ myData_value }}", function(d){return d.variable;}).keys() 
 
@@ -143,8 +144,8 @@
       .data(data, function(d) {return d.group+':'+d.variable;})
       .enter()
       .append("rect")
-        .attr("x", function(d) { return x(d.fields.group) })
-        .attr("y", function(d) { return y(d.fields.variable) })
+        .attr("x", function(d) { return x(d.fields.x) })
+        .attr("y", function(d) { return y(d.fields.y) })
         .attr("rx", 4)
         .attr("ry", 4)
         .attr("width", x.bandwidth() )
