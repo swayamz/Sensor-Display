@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<form id='nameForm'>
+<!--form id='nameForm'>
   <div class='form-uname'>
       <label id='nameLable' for='nameField'>Select a Baseline:</label>
       <input id='nameField' type='text' maxlength='3'/>
@@ -9,15 +9,16 @@
   <div class='form-sub'>
       <button id='subButton' type='button'>Apply</button>
   </div>
-</form>
+</form-->
 
 <div>
-  <p id='result'></p></div>
+  <p id='myResult'></p></div>
 </div>
-<p>
-  <img border="0" alt="W3Schools" src="https://i.gyazo.com/92260d7716943dae2468cef6776fc2ab.png" width="800" height="200">
-  </a>
-</p>
+<div class="slidecontainer">
+  <p id='demo'></p></div>
+  <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+</div>
+<div id="my_colorscale"></div>
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v4.js"></script>
 
@@ -30,15 +31,26 @@
 </div>
 <script>
   //console.log(myData);
-  function getUserName() {
+  var slider = document.getElementById("myRange");
+  var output = document.getElementById("myResult");
+  output.innerHTML = 'Ideal Moisture Value: '+ slider.value;
+
+  slider.oninput = function() {
+    output.innerHTML = 'Ideal Moisture Value: ' + this.value;
+  }
+  slider.onchange = function() {
+    createGraph(this.value);
+  }
+
+  /*function getBaseline() {
     var nameField = document.getElementById('nameField').value;
     var result = document.getElementById('result');
     result.textContent = 'Your baseline is: ' + nameField;
         //alert(nameField);
-    createGraph();
+    createGraph(document.getElementById('nameField').value);
   }
   var subButton = document.getElementById('subButton');
-  subButton.addEventListener('click', getUserName, false); 
+  subButton.addEventListener('click', getBaseline, false); */
 
   // set the dimensions and margins of the graph
   var margin = {top: 80, right: 25, bottom: 30, left: 40},
@@ -53,22 +65,29 @@
   .append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
-
+    
+  var svgContainer = d3.select("#my_colorscale") 
+      .append("svg")
+        .attr("width", 1000)
+        .attr("height", 150);
   
   //Read the data
-  function createGraph(){
+  function createGraph(myBaseline){
     //d3.csv("https://raw.githubusercontent.com/swayamz/datatsv/master/Untitled%20spreadsheet%20-%20Sheet1.csv", function(data) {
     d3.json("{% url "getJSONdata" %}", function(data) {
-    console.log("{% url "getJSONdata" %}");
+    ///console.log("{% url "getJSONdata" %}");
     console.log(data);
     data = JSON.parse(data);
     console.log(data);
-    console.log(document.getElementById('nameField').value);
+    console.log(myBaseline);
+    console.log("{{ latestTime }}");
     svg.selectAll("*").remove();
+    svgContainer.selectAll("*").remove();
     
     // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
     var myGroups = d3.map(data, function(d){return d.fields.x;}).keys()
     var myVars = d3.map(data, function(d){return d.fields.y;}).keys()
+    var myTime = "{{ latestTime }}";
     //var myGroups = d3.map("{{ myData_value }}", function(d){return d.group;}).keys()
     //var myVars = d3.map("{{ myData_value }}", function(d){return d.variable;}).keys() 
 
@@ -95,10 +114,165 @@
       .select(".domain").remove()
   
     // Build color scale
+    var myScale = [0, 25, 50, 80, 95, 100]
     var myColor = d3.scaleSequential()
      .interpolator(d3.interpolateSpectral)
      .domain([1, 100])
-    // create a tooltip
+    
+    // ---------------------------- //
+    // -----------LEGEND----------- //
+    // ---------------------------- //
+    // ---------------------------- //
+
+    var myScalar = 1.5
+    var rect1 = svgContainer.append("rect")
+      .attr("x", 50)
+      .attr("y", 30)
+      .attr("width", 100)
+      .attr("height", 100)
+      .style("fill", myColor(myScale[0]));
+    var rect2 = svgContainer.append("rect")
+      .attr("x", 150)
+      .attr("y", 30)
+      .attr("width", 100)
+      .attr("height", 100)
+      .style("fill", myColor(myScale[1]));
+    var rect3 = svgContainer.append("rect")
+      .attr("x", 250)
+      .attr("y", 30)
+      .attr("width", 100)
+      .attr("height", 100)
+      .style("fill", myColor(myScale[2]));
+    var rect4 = svgContainer.append("rect")
+      .attr("x", 350)
+      .attr("y", 30)
+      .attr("width", 100)
+      .attr("height", 100)
+      .style("fill", myColor(myScale[3]));
+    var rect5 = svgContainer.append("rect")
+      .attr("x", 450)
+      .attr("y", 30)
+      .attr("width", 100)
+      .attr("height", 100)
+      .style("fill", myColor(myScale[4]));
+    var rect6 = svgContainer.append("rect")
+      .attr("x", 550)
+      .attr("y", 30)
+      .attr("width", 100)
+      .attr("height", 100)
+      .style("fill", myColor(myScale[5]));
+    var rect1text = svgContainer.append("text")
+      .attr("x", 100)
+      .attr("y", 90)
+      .text("Critical Under")
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "bold");
+    var rect2text = svgContainer.append("text")
+      .attr("x", 200)
+      .attr("y", 90)
+      .text("Medium Under")
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "bold");
+    var rect3text = svgContainer.append("text")
+      .attr("x", 300)
+      .attr("y", 90)
+      .text("Slight Under")
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "bold");
+    var rect4text = svgContainer.append("text")
+      .attr("x", 400)
+      .attr("y", 90)
+      .text("Good")
+      .style("text-anchor", "middle")
+      .style("font-size", "18px")
+      .style("font-weight", "bold");
+    var rect5text = svgContainer.append("text")
+      .attr("x", 500)
+      .attr("y", 90)
+      .text("Slight Over")
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "bold");
+    var rect6text = svgContainer.append("text")
+      .attr("x", 600)
+      .attr("y", 90)
+      .text("Critical Over")
+      .style("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "bold");
+    var title = svgContainer.append("text")
+      .attr("x", 350)
+      .attr("y", 20)
+      .text("Distance away from Ideal Moisture Value")
+      .style("text-anchor", "middle")
+      .style("font-size", "25px")
+      .style("font-weight", "bold");
+
+    var desc1 = svgContainer.append("text")
+      .attr("x", 50)
+      .attr("y", 150)
+      .text(">")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var desc2 = svgContainer.append("text")
+      .attr("x", 150)
+      .attr("y", 150)
+      .text("-45%")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var desc3 = svgContainer.append("text")
+      .attr("x", 250)
+      .attr("y", 150)
+      .text("-20%")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var desc4 = svgContainer.append("text")
+      .attr("x", 350)
+      .attr("y", 150)
+      .text("-5%")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var desc5 = svgContainer.append("text")
+      .attr("x", 450)
+      .attr("y", 150)
+      .text("5%")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var desc6 = svgContainer.append("text")
+      .attr("x", 550)
+      .attr("y", 150)
+      .text("15%")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var desc7 = svgContainer.append("text")
+      .attr("x", 650)
+      .attr("y", 150)
+      .text("<")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+    var ideal = svgContainer.append("text")
+      .attr("x", 400)
+      .attr("y", 150)
+      .text("Ideal")
+      .style("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("font-weight", "bold");
+
+    // ---------------------------- //
+    // ---------------------------- //
+    // ---------------------------- //
+    // ---------------------------- //
+
     var tooltip = d3.select("#my_dataviz")
       .append("div")
       .style("opacity", 0)
@@ -132,14 +306,13 @@
     }
   
     // add the squares
-    var myBase = Number(document.getElementById('nameField').value);
-    console.log('My Base is: '+ myBase);
+    var myBase = Number(myBaseline);
+    //console.log('My Base is: '+ myBase);
     var myBottom = myBase-5;
     var myTop = myBase+5;
-    console.log('My Bottom is: '+ myBottom);
-    console.log('My Top is: '+ myTop);
+    //console.log('My Bottom is: '+ myBottom);
+    //console.log('My Top is: '+ myTop);
 
-    var myScale = [0, 25, 50, 80, 95, 100]
     svg.selectAll()
       .data(data, function(d) {return d.group+':'+d.variable;})
       .enter()
@@ -201,9 +374,15 @@ svg.append("text")
   .style("fill", "grey")
   .style("max-width", 400)
   .text("Status of the soil moisture level in each section of the field.");
+svg.append("text")
+  .attr("x", 0)
+  .attr("y", -5)
+  .attr("text-anchor", "left")
+  .style("font-size", "14px")
+  .style("fill", "grey")
+  .style("max-width", 400)
+  .text("Data Fetch Time: " + myTime);
   })}
-  
- 
   
   
   </script>
