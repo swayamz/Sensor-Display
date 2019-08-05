@@ -7,5 +7,4 @@ from .views import getJSONdata
 urlpatterns = [
     path('',views.home, name='home'),
     url(r'^api/getJSONdata', getJSONdata, name='getJSONdata')
-
 ]

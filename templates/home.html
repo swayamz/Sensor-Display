@@ -21,7 +21,6 @@
 <div id="my_colorscale"></div>
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v4.js"></script>
-
 <!-- Create a div where the graph will take place -->
 <div id="my_dataviz"></div>
 
@@ -54,8 +53,8 @@
 
   // set the dimensions and margins of the graph
   var margin = {top: 80, right: 25, bottom: 30, left: 40},
-    width = 750 - margin.left - margin.right,
-    height = 750 - margin.top - margin.bottom;
+    width = 600 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
   
   // append the svg object to the body of the page
   var svg = d3.select("#my_dataviz")
@@ -83,6 +82,7 @@
     console.log("{{ latestTime }}");
     svg.selectAll("*").remove();
     svgContainer.selectAll("*").remove();
+
     
     // Labels of row and columns -> unique identifier of the column called 'group' and 'variable'
     var myGroups = d3.map(data, function(d){return d.fields.x;}).keys()
